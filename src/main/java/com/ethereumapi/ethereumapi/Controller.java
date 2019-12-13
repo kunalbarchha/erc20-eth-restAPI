@@ -7,7 +7,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -23,16 +25,16 @@ public class Controller {
         private String fromWallet;
         private String privateKey;
         private String toAddress;
-        private BigInteger value;
+        private BigDecimal value;
     }
 
+    @Data
     public static class CreateWallet{
         private String walletName;
     }
 
     @Autowired
     WalletService walletService;
-    CreateWallet createWallet;
 
     @RequestMapping(value = "/{walletAddress}", method = RequestMethod.POST)
     public ResponseEntity<?> getBalance(@PathVariable String walletAddress) {
@@ -61,22 +63,24 @@ public class Controller {
                 e.printStackTrace();
                 return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
             }
-
         return new ResponseEntity<String>(HttpStatus.OK);
     }
 
-    @PostMapping(value="/create/", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<?> newWallet(@RequestBody CreateWallet createWallet){
+    @PostMapping(value = "/create/",consumes = "application/json",produces = "application/json")
+    public ResponseEntity<?>wallet(@RequestBody CreateWallet createWallet){
+
         try
         {
-            log.info("Wallet Name {} ", createWallet.walletName);
-            walletService.createWallet(createWallet.walletName);
+            log.info("Wallet name >>>> {}", createWallet.walletName);
+            return new ResponseEntity<String>(walletService.createWallet(createWallet.walletName), HttpStatus.OK);
         }
-        catch (Exception e){
+
+        catch (Exception e)
+        {
             e.printStackTrace();
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(e.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return new ResponseEntity<String>(HttpStatus.OK);
     }
+
 }
 

@@ -1,10 +1,13 @@
 package com.ethereumapi.ethereumapi;
 
 import lombok.extern.slf4j.Slf4j;
+
+
+import java.math.BigInteger;
 import java.sql.*;
 
 @Slf4j
-public class RepositoryService {
+public class RepositoryService{
 
         Connection connection;
         public void Connection() throws Exception{
@@ -37,6 +40,10 @@ public class RepositoryService {
                 log.info("Wallet Address : " +walletAddress);
             }
             return walletAddress;
+        }
+        public void updateRecord(String fromWallet, String toWallet, BigInteger amount, String txHash){
+
+
         }
 }
 
