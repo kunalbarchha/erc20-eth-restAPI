@@ -1,6 +1,10 @@
 package com.ethereumapi.ethereumapi;
 
+import com.ethereumapi.ethereumapi.Entity.*;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.util.JSONPObject;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.json.GsonJsonParser;
 import org.springframework.stereotype.Component;
 import org.web3j.crypto.*;
 import org.web3j.protocol.Web3j;
@@ -12,10 +16,12 @@ import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.utils.Convert;
 import org.web3j.utils.Numeric;
+import springfox.documentation.spring.web.json.Json;
 
-import java.io.Serializable;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 @Slf4j
@@ -23,17 +29,22 @@ import java.util.concurrent.ExecutionException;
 public class WalletService {
 
     Entity entity = new Entity();
-    Wallet wallet=new Wallet();
-    Web3j web3j = Web3j.build(new HttpService("https://mainnet.infura.io/v3/2b319b8acaca45ecbd5d9ed2f99c85ca"));
+    WalletEntity wallet=new WalletEntity();
+    Web3j web3j = Web3j.build(new HttpService("https://kovan.infura.io/v3/2b319b8acaca45ecbd5d9ed2f99c85ca"));
 
-    public String createWallet(String walletName) throws Exception {
+    @JsonSerialize
+    public Map<String, String> createWallet(String walletName) throws Exception {
+
+        Map<String,String> walletResponse=new HashMap<>();
 
         ECKeyPair keyPair = Keys.createEcKeyPair();
         entity.setPublicKey(keyPair.getPublicKey());
         entity.setPrivateKey(keyPair.getPrivateKey());
 
         wallet.setPrivateKeyHex(Numeric.toHexStringWithPrefix(entity.getPrivateKey()));
+        walletResponse.put("PrivateKey",wallet.getPrivateKeyHex());
         wallet.setPublicKeyHex(Numeric.toHexStringWithPrefix(entity.getPublicKey()));
+        walletResponse.put("PublicKey",wallet.getPublicKeyHex());
 
         log.info("Private Key to Hex >>> " + wallet.getPrivateKeyHex());
         log.info("Public Key to Hex >>> " + wallet.getPublicKeyHex());
@@ -41,12 +52,12 @@ public class WalletService {
         Credentials credentials = Credentials.create(new ECKeyPair(entity.getPublicKey(), entity.getPrivateKey()));
         String walletAddress=credentials.getAddress();
         wallet.setWalletAddress(walletAddress);
+        walletResponse.put("WalletAddress",wallet.getWalletAddress());
 
         RepositoryService database = new RepositoryService();
         database.insert(walletName, wallet.getWalletAddress(), wallet.getPrivateKeyHex(), wallet.getPublicKeyHex());
-
         log.info("Wallet Address >>>>>>>" + walletAddress);
-        return walletAddress;
+        return walletResponse;
     }
 
     public String getBalance(String walletAddress) throws Exception {
@@ -73,7 +84,7 @@ public class WalletService {
         BigInteger gasPrice = ethGasPrice.getGasPrice();
         BigDecimal gas=Convert.fromWei(String.valueOf(gasPrice), Convert.Unit.GWEI                    );
         log.info("Gas Price from method >>>> {}", gas.toString());
-        return gas;
+        return gas.multiply(BigDecimal.valueOf(2));
     }
 
     private BigInteger getNonce(String from) throws ExecutionException, InterruptedException {
@@ -107,6 +118,7 @@ public class WalletService {
         byte[] signMessage=TransactionEncoder.signMessage(rawTransaction,credentials);
         String signedTransaction=Numeric.toHexString(signMessage);
         String error=null;
+
         try{
             EthSendTransaction sendRawTransaction=web3j.ethSendRawTransaction(signedTransaction).sendAsync().get();
 //            error=sendRawTransaction.getError().getMessage();

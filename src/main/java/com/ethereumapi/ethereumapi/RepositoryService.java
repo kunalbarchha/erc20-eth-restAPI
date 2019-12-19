@@ -1,5 +1,6 @@
 package com.ethereumapi.ethereumapi;
 
+import com.ethereumapi.ethereumapi.Entity.Entity;
 import lombok.extern.slf4j.Slf4j;
 
 

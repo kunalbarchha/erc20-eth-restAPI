@@ -1,9 +1,8 @@
-package com.ethereumapi.ethereumapi;
+package com.ethereumapi.ethereumapi.Entity;
 
 import lombok.Getter;
 import lombok.Setter;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 
 @Getter
@@ -19,12 +18,4 @@ public class Entity {
     private BigInteger gasPrice;
     private BigInteger nonce;
     private String txHash;
-}
-@Getter
-@Setter
-class Wallet{
-    private String publicKeyHex;
-    private String privateKeyHex;
-    private String walletAddress;
-    private String walletName;
 }
